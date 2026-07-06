@@ -205,22 +205,22 @@
         }
 
         // Conexión Real al Endpoint GET de tu Cloudflare Worker
-        async function fetchChatsFromWorker() {
-            btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Cargando...`;
-            try {
-                const response = await fetch(`${WORKER_URL}/api/chats`);
-                if (!response.ok) {
-                    throw new Error(`Error en el servidor: ${response.status}`);
-                }
-                allChats = await response.getJson ? await response.getJson() : await response.json();
-                loadTable(allChats);
-            } catch (err) {
-                console.error("Error al traer reportes:", err);
-                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2 block"></i> Error de conexión con la base de datos.</td></tr>`;
-            } finally {
-                btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`;
-            }
+async function fetchChatsFromWorker() {
+    btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Cargando...`;
+    try {
+        const response = await fetch(`${WORKER_URL}/api/chats`);
+        if (!response.ok) {
+            throw new Error(`Error en el servidor: ${response.status}`);
         }
+        allChats = await response.json(); // <-- Corregido para leer el JSON real de D1
+        loadTable(allChats);
+    } catch (err) {
+        console.error("Error al traer reportes:", err);
+        tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2 block"></i> Error de conexión con la base de datos.</td></tr>`;
+    } finally {
+        btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`;
+    }
+}
 
         // Filtrar en tiempo real por teléfono
         function filterChats() {
