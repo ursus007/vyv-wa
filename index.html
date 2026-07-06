@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grupo V&V - Analizador de Reportes</title>
-    <!-- Tailwind CSS CDN para un desarrollo ágil y limpio -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Color institucional del Grupo V&V */
         .bg-vyv-red { background-color: #991B1B; }
         .text-vyv-red { color: #991B1B; }
         .border-vyv-red { border-color: #991B1B; }
@@ -17,11 +15,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <!-- CABECERA PRINCIPAL (Navbar) -->
     <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <!-- Espacio para el Logo circular -->
                 <div class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center bg-white overflow-hidden shadow-inner">
                     <span class="text-vyv-red font-bold text-lg">V&V</span>
                 </div>
@@ -30,7 +26,6 @@
                     <p class="text-xs font-medium text-slate-500">Analizador de reportes de chat de WhatsApp</p>
                 </div>
             </div>
-            <!-- Info de la Cola / Línea -->
             <div class="flex items-center gap-6 text-sm text-slate-600 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
                 <div><span class="font-semibold text-slate-700">Línea WA:</span> 945455908</div>
                 <div class="h-4 w-px bg-slate-300"></div>
@@ -39,10 +34,7 @@
         </div>
     </header>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        
-        <!-- TARJETAS DE MÉTRICAS RÁPIDAS (KPIs) -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
                 <div class="p-3 rounded-lg bg-red-50 text-vyv-red text-2xl"><i class="fa-solid fa-comments"></i></div>
@@ -67,9 +59,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN DE TABLA E HISTORIAL -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <!-- Barra de Herramientas / Filtros -->
             <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row gap-3 justify-between items-center">
                 <div class="relative w-full sm:w-72">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -82,7 +72,6 @@
                 </button>
             </div>
 
-            <!-- Contenedor de la Tabla -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -96,43 +85,32 @@
                         </tr>
                     </thead>
                     <tbody id="chats-table-body" class="divide-y divide-slate-100">
-                        <tr id="empty-row">
-                            <td colspan="6" class="p-8 text-center text-slate-400">
-                                <i class="fa-solid fa-inbox text-3xl mb-2 block"></i> No hay chats cargados todavía. Haz clic en actualizar.
-                            </td>
-                        </tr>
+                        <tr id="empty-row"><td colspan="6" class="p-8 text-center text-slate-400">Cargando datos...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- VENTANA MODAL: VISUALIZADOR DE TRANSCRIPT (CHAT VIEWER) -->
     <div id="chat-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[550px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <!-- Encabezado del Modal -->
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[550px] flex flex-col overflow-hidden">
             <div class="p-4 bg-vyv-red text-white flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg"><i class="fa-brands fa-whatsapp"></i></div>
                     <div>
-                        <h3 id="modal-client-name" class="font-bold text-base leading-tight">Historial de Chat</h3>
+                        <h3 id="modal-client-name" class="font-bold text-base leading-tight">Historial</h3>
                         <p id="modal-agent-name" class="text-xs text-red-200"></p>
                     </div>
                 </div>
                 <button id="btn-close-modal" class="text-white hover:text-red-200 text-xl cursor-pointer p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <!-- Cuerpo del Modal (Área de Mensajes tipo WhatsApp) -->
-            <div id="modal-chat-body" class="flex-1 bg-[#efeae2] p-4 overflow-y-auto space-y-3" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-opacity: 0.4;">
-                <!-- Las burbujas se renderizan de forma dinámica desde JS -->
+            <div id="modal-chat-body" class="flex-1 bg-[#efeae2] p-4 overflow-y-auto space-y-3" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');">
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- LÓGICA DE CONTROL DEL FRONTEND -->
     <script>
-        const WORKER_URL = 'https://vyv-wa.ursus006.workers.dev'; // URL de tu Cloudflare Worker
-
-        // Elementos del DOM
+        const WORKER_URL = 'https://vyv-wa.ursus006.workers.dev';
         const btnRefresh = document.getElementById('btn-refresh');
         const tableBody = document.getElementById('chats-table-body');
         const searchInput = document.getElementById('search-input');
@@ -140,142 +118,75 @@
         const btnCloseModal = document.getElementById('btn-close-modal');
         const modalChatBody = document.getElementById('modal-chat-body');
 
-        // Datos en memoria globales
         let allChats = [];
 
-        // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
             fetchChatsFromWorker();
-            
-            // Eventos
             btnRefresh.addEventListener('click', fetchChatsFromWorker);
             btnCloseModal.addEventListener('click', () => chatModal.classList.add('hidden'));
             searchInput.addEventListener('input', filterChats);
         });
 
-        // Cargar los datos en la tabla visual y actualizar KPIs
         function loadTable(data) {
             if (!data || data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i class="fa-solid fa-inbox text-3xl mb-2 block"></i> No se encontraron registros de chats.</td></tr>`;
-                document.getElementById('kpi-total').innerText = '0';
-                document.getElementById('kpi-duration').innerText = '0 min';
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No hay chats registrados.</td></tr>`;
                 return;
             }
-
             document.getElementById('kpi-total').innerText = data.length;
-            
-            // Calcular duración promedio
-            let totalMinutes = 0;
-            data.forEach(c => {
-                const diff = new Date(c.end_time) - new Date(c.start_time);
-                totalMinutes += Math.max(0, Math.floor(diff / 1000 / 60));
-            });
-            const avgMinutes = Math.round(totalMinutes / data.length) || 0;
-            document.getElementById('kpi-duration').innerText = `${avgMinutes} min`;
-
             tableBody.innerHTML = '';
-
             data.forEach(chat => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 border-b border-slate-100 transition-colors";
-                
-                const fInicio = chat.start_time ? new Date(chat.start_time).toLocaleString('es-PE', {timeZone: 'America/Lima'}) : 'N/A';
-                const fFin = chat.end_time ? new Date(chat.end_time).toLocaleString('es-PE', {timeZone: 'America/Lima'}) : 'N/A';
-
                 tr.innerHTML = `
-                    <td class="p-4 font-mono text-xs text-slate-500 font-bold">${chat.chat_id ? chat.chat_id.substring(0,8) : 'N/A'}</td>
-                    <td class="p-4">
-                        <div class="font-semibold text-slate-900">${chat.customer_phone || 'Desconocido'}</div>
-                        <div class="text-xs text-slate-400">${chat.customer_name || 'Sin Nombre'}</div>
-                    </td>
-                    <td class="p-4">
-                        <div class="text-slate-800 font-medium">${chat.agent_name || 'Giovanna Bravo'}</div>
-                        <div class="text-xs text-slate-400">Ext: ${chat.agent_extension || '2007'}</div>
-                    </td>
-                    <td class="p-4 text-xs text-slate-600">${fInicio}</td>
-                    <td class="p-4 text-xs text-slate-600">${fFin}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="openChatViewer('${chat.chat_id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-vyv-red hover:text-white text-slate-700 font-medium rounded-md text-xs transition-all shadow-sm cursor-pointer">
-                            <i class="fa-solid fa-eye"></i> Ver Chat
-                        </button>
-                    </td>
+                    <td class="p-4 font-mono text-xs text-slate-500 font-bold">${chat.chat_id.substring(0,8)}</td>
+                    <td class="p-4"><div class="font-semibold text-slate-900">${chat.customer_phone}</div><div class="text-xs text-slate-400">${chat.customer_name}</div></td>
+                    <td class="p-4 text-slate-800 font-medium">${chat.agent_name}</td>
+                    <td class="p-4 text-xs text-slate-600">${new Date(chat.start_time).toLocaleString()}</td>
+                    <td class="p-4 text-xs text-slate-600">${new Date(chat.end_time).toLocaleString()}</td>
+                    <td class="p-4 text-center"><button onclick="openChatViewer('${chat.chat_id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-vyv-red hover:text-white text-slate-700 font-medium rounded-md text-xs cursor-pointer"><i class="fa-solid fa-eye"></i> Ver</button></td>
                 `;
                 tableBody.appendChild(tr);
             });
         }
 
-        // Conexión Real al Endpoint GET de tu Cloudflare Worker
-async function fetchChatsFromWorker() {
-    btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Cargando...`;
-    try {
-        const response = await fetch(`${WORKER_URL}/api/chats`);
-        if (!response.ok) {
-            throw new Error(`Error en el servidor: ${response.status}`);
+        async function fetchChatsFromWorker() {
+            btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i>`;
+            try {
+                const res = await fetch(`${WORKER_URL}/api/chats`);
+                allChats = await res.json();
+                loadTable(allChats);
+            } catch (err) { alert("Error al conectar con la base de datos."); }
+            finally { btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`; }
         }
-        allChats = await response.json(); // <-- Corregido para leer el JSON real de D1
-        loadTable(allChats);
-    } catch (err) {
-        console.error("Error al traer reportes:", err);
-        tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2 block"></i> Error de conexión con la base de datos.</td></tr>`;
-    } finally {
-        btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`;
-    }
-}
 
-        // Filtrar en tiempo real por teléfono
         function filterChats() {
-            const term = searchInput.value.trim().toLowerCase();
-            const filtered = allChats.filter(c => (c.customer_phone || '').includes(term));
-            loadTable(filtered);
+            const term = searchInput.value.toLowerCase();
+            loadTable(allChats.filter(c => c.customer_phone.includes(term)));
         }
 
-        // Renderizar y abrir el visor de Chat estilo WhatsApp
         window.openChatViewer = function(chatId) {
             const chat = allChats.find(c => c.chat_id === chatId);
             if (!chat) return;
-
-            document.getElementById('modal-client-name').innerText = `Cliente: +51 ${chat.customer_phone || 'WhatsApp'}`;
-            document.getElementById('modal-agent-name').innerText = `Atendido por: ${chat.agent_name || 'Giovanna Bravo'} (Ext: ${chat.agent_extension || '2007'})`;
-            
+            document.getElementById('modal-client-name').innerText = `Cliente: ${chat.customer_name}`;
+            document.getElementById('modal-agent-name').innerText = `Atendido por: ${chat.agent_name}`;
             modalChatBody.innerHTML = '';
-
-            let lines = [];
-            
-            // Tratamiento dinámico del transcript para evitar rupturas
             try {
-                // Si guardaste el transcript estructurado en formato JSON stringificado
-                const parsed = JSON.parse(chat.transcript);
-                if (Array.isArray(parsed)) {
-                    lines = parsed.map(m => `${m.speaker || (m.isAgent ? 'Agente' : 'Cliente')}: ${m.text}`);
-                } else if (typeof parsed === 'string') {
-                    lines = parsed.split('<br/>');
-                } else {
-                    lines = chat.transcript.split('<br/>');
-                }
-            } catch(e) {
-                // Fallback si vino codificado con saltos HTML nativos de 3CX
-                lines = (chat.transcript || '').split('<br/>');
-            }
-            
-            lines.forEach(line => {
-                if(!line.trim()) return;
-                
-                const isAgent = line.startsWith('Agente:') || line.toLowerCase().includes('agente:');
-                const cleanText = line.replace(/^(Cliente:|Agente:)/i, '').trim();
-
-                const bubbleWrapper = document.createElement('div');
-                bubbleWrapper.className = `flex w-full ${isAgent ? 'justify-end' : 'justify-start'}`;
-
-                bubbleWrapper.innerHTML = `
-                    <div class="max-w-[75%] p-3 rounded-lg shadow-xs text-sm ${isAgent ? 'bg-[#d9fdd3] text-slate-900 rounded-tr-none' : 'bg-white text-slate-900 rounded-tl-none'}">
-                        <p class="leading-normal break-words">${cleanText}</p>
-                    </div>
-                `;
-                modalChatBody.appendChild(bubbleWrapper);
-            });
-
+                const messages = JSON.parse(chat.transcript);
+                messages.forEach(msg => {
+                    const bubble = document.createElement('div');
+                    const isAgent = msg.type === 'agent';
+                    const isSystem = msg.type === 'system';
+                    bubble.className = `flex w-full ${isAgent ? 'justify-end' : (isSystem ? 'justify-center' : 'justify-start')}`;
+                    bubble.innerHTML = `
+                        <div class="max-w-[75%] p-3 rounded-lg shadow-xs text-sm ${isAgent ? 'bg-[#d9fdd3] rounded-tr-none' : (isSystem ? 'bg-slate-200 text-slate-500 text-xs' : 'bg-white rounded-tl-none')}">
+                            ${!isSystem ? `<div class="text-[10px] font-bold text-slate-500 mb-1">${msg.person}</div>` : ''}
+                            <p class="leading-normal break-words">${msg.text}</p>
+                        </div>
+                    `;
+                    modalChatBody.appendChild(bubble);
+                });
+            } catch(e) { modalChatBody.innerHTML = `<p>Error al cargar historial.</p>`; }
             chatModal.classList.remove('hidden');
-            modalChatBody.scrollTop = modalChatBody.scrollHeight;
         }
     </script>
 </body>
