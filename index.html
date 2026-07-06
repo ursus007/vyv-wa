@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grupo V&V - Analizador de Reportes</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Color institucional del Grupo V&V */
+        .bg-vyv-red { background-color: #991B1B; }
+        .text-vyv-red { color: #991B1B; }
+        .border-vyv-red { border-color: #991B1B; }
+        .focus-vyv-red:focus { border-color: #991B1B; --tw-ring-color: #991B1B; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center bg-white overflow-hidden shadow-inner">
+                    <span class="text-vyv-red font-bold text-lg">V&V</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">Grupo V&V</h1>
+                    <p class="text-xs font-medium text-slate-500">Analizador de reportes de chat de WhatsApp</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-6 text-sm text-slate-600 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
+                <div><span class="font-semibold text-slate-700">Línea WA:</span> 945455908</div>
+                <div class="h-4 w-px bg-slate-300"></div>
+                <div><span class="font-semibold text-slate-700">Supervisora:</span> Giovanna Bravo</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="p-3 rounded-lg bg-red-50 text-vyv-red text-2xl"><i class="fa-solid fa-comments"></i></div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Total Chats Archivados</p>
+                    <p class="text-2xl font-bold text-slate-900" id="kpi-total">0</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="p-3 rounded-lg bg-blue-50 text-blue-600 text-2xl"><i class="fa-solid fa-clock"></i></div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Duración Promedio</p>
+                    <p class="text-2xl font-bold text-slate-900" id="kpi-duration">0 min</p>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="p-3 rounded-lg bg-green-50 text-green-600 text-2xl"><i class="fa-solid fa-user-shield"></i></div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Cola Activa</p>
+                    <p class="text-base font-bold text-slate-900 truncate max-w-[180px]">Sup. Giovanna Bravo</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row gap-3 justify-between items-center">
+                <div class="relative w-full sm:w-72">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Buscar por número de cliente..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus-vyv-red focus:border-transparent">
+                </div>
+                <button id="btn-refresh" class="w-full sm:w-auto px-4 py-2 bg-vyv-red hover:bg-red-900 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-rotate"></i> Actualizar Reportes
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-semibold">
+                            <th class="p-4">ID Sesión</th>
+                            <th class="p-4">Cliente (WhatsApp)</th>
+                            <th class="p-4">Agente Atención</th>
+                            <th class="p-4">Inicio del Chat</th>
+                            <th class="p-4">Cierre del Chat</th>
+                            <th class="p-4 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chats-table-body" class="divide-y divide-slate-100">
+                        <tr id="empty-row">
+                            <td colspan="6" class="p-8 text-center text-slate-400">
+                                <i class="fa-solid fa-inbox text-3xl mb-2 block"></i> No hay chats cargados todavía. Haz clic en actualizar.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="chat-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[550px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="p-4 bg-vyv-red text-white flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg"><i class="fa-brands fa-whatsapp"></i></div>
+                    <div>
+                        <h3 id="modal-client-name" class="font-bold text-base leading-tight">Historial de Chat</h3>
+                        <p id="modal-agent-name" class="text-xs text-red-200"></p>
+                    </div>
+                </div>
+                <button id="btn-close-modal" class="text-white hover:text-red-200 text-xl cursor-pointer p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="modal-chat-body" class="flex-1 bg-[#efeae2] p-4 overflow-y-auto space-y-3" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-opacity: 0.4;">
+                </div>
+        </div>
+    </main>
+
+    <script>
+        const WORKER_URL = 'https://vyv-wa.ursus006.workers.dev'; // URL de tu Cloudflare Worker
+
+        // Elementos del DOM
+        const btnRefresh = document.getElementById('btn-refresh');
+        const tableBody = document.getElementById('chats-table-body');
+        const searchInput = document.getElementById('search-input');
+        const chatModal = document.getElementById('chat-modal');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const modalChatBody = document.getElementById('modal-chat-body');
+
+        // Datos en memoria globales
+        let allChats = [];
+
+        // Datos de prueba iniciales actualizados con la Supervisora Giovanna Bravo
+        const mockData = [
+            {
+                chat_id: "WA-7c0554ef",
+                customer_phone: "939579468",
+                customer_name: "Carlos Vásquez",
+                agent_extension: "2007",
+                agent_name: "Giovanna Bravo",
+                start_time: "2026-07-06T10:15:00.000Z",
+                end_time: "2026-07-06T10:45:00.000Z",
+                transcript: "Cliente: Hola, me gustaría consultar precios de soluciones.<br/>Agente: Hola Carlos, por supuesto. ¿Qué plan necesitas?<br/>Cliente: El plan corporativo completo. Gracias."
+            }
+        ];
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            allChats = [...mockData];
+            loadTable(allChats);
+            
+            // Eventos
+            btnRefresh.addEventListener('click', fetchChatsFromWorker);
+            btnCloseModal.addEventListener('click', () => chatModal.classList.add('hidden'));
+            searchInput.addEventListener('input', filterChats);
+        });
+
+        // Cargar los datos en la tabla visual y actualizar KPIs
+        function loadTable(data) {
+            if (data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i class="fa-solid fa-inbox text-3xl mb-2 block"></i> No se encontraron registros.</td></tr>`;
+                document.getElementById('kpi-total').innerText = '0';
+                document.getElementById('kpi-duration').innerText = '0 min';
+                return;
+            }
+
+            document.getElementById('kpi-total').innerText = data.length;
+            
+            // Calcular duración promedio
+            let totalMinutes = 0;
+            data.forEach(c => {
+                const diff = new Date(c.end_time) - new Date(c.start_time);
+                totalMinutes += Math.floor(diff / 1000 / 60);
+            });
+            const avgMinutes = Math.round(totalMinutes / data.length);
+            document.getElementById('kpi-duration').innerText = `${avgMinutes} min`;
+
+            tableBody.innerHTML = '';
+
+            data.forEach(chat => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 border-b border-slate-100 transition-colors";
+                
+                const fInicio = new Date(chat.start_time).toLocaleString('es-PE', {timeZone: 'America/Lima'});
+                const fFin = new Date(chat.end_time).toLocaleString('es-PE', {timeZone: 'America/Lima'});
+
+                tr.innerHTML = `
+                    <td class="p-4 font-mono text-xs text-slate-500 font-bold">${chat.chat_id.substring(0,8)}</td>
+                    <td class="p-4">
+                        <div class="font-semibold text-slate-900">${chat.customer_phone}</div>
+                        <div class="text-xs text-slate-400">${chat.customer_name || 'Sin Nombre'}</div>
+                    </td>
+                    <td class="p-4">
+                        <div class="text-slate-800 font-medium">${chat.agent_name || 'Agente 3CX'}</div>
+                        <div class="text-xs text-slate-400">Ext: ${chat.agent_extension || 'N/A'}</div>
+                    </td>
+                    <td class="p-4 text-xs text-slate-600">${fInicio}</td>
+                    <td class="p-4 text-xs text-slate-600">${fFin}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="openChatViewer('${chat.chat_id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-vyv-red hover:text-white text-slate-700 font-medium rounded-md text-xs transition-all shadow-sm cursor-pointer">
+                            <i class="fa-solid fa-eye"></i> Ver Chat
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Llamada simulada (Se conectará de verdad en el Paso 2)
+        async function fetchChatsFromWorker() {
+            btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Conectando...`;
+            try {
+                // Simulación de delay de red antes de conectar al backend de producción
+                setTimeout(() => {
+                    loadTable(allChats);
+                    btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`;
+                }, 600);
+            } catch (err) {
+                alert("Error al conectar con el Worker: " + err.message);
+                btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`;
+            }
+        }
+
+        // Filtrar en tiempo real por teléfono
+        function filterChats() {
+            const term = searchInput.value.trim().toLowerCase();
+            const filtered = allChats.filter(c => c.customer_phone.includes(term));
+            loadTable(filtered);
+        }
+
+        // Renderizar y abrir el visor de Chat estilo WhatsApp
+        window.openChatViewer = function(chatId) {
+            const chat = allChats.find(c => c.chat_id === chatId);
+            if (!chat) return;
+
+            document.getElementById('modal-client-name').innerText = `Cliente: +51 ${chat.customer_phone}`;
+            document.getElementById('modal-agent-name').innerText = `Atendido por: ${chat.agent_name} (Ext: ${chat.agent_extension})`;
+            
+            modalChatBody.innerHTML = '';
+
+            // Procesamiento dinámico del transcript (Soporta JSON plano de 3CX v20 o Strings estructurados)
+            let lines = [];
+            try {
+                // Si la data viene en un array JSON nativo
+                const parsed = JSON.parse(chat.transcript);
+                if (Array.isArray(parsed)) {
+                    lines = parsed.map(m => `${m.speaker || (m.isAgent ? 'Agente' : 'Cliente')}: ${m.text}`);
+                } else {
+                    lines = chat.transcript.split('<br/>');
+                }
+            } catch(e) {
+                // Fallback para strings con separadores HTML
+                lines = chat.transcript.split('<br/>');
+            }
+            
+            lines.forEach(line => {
+                if(!line.trim()) return;
+                
+                const isAgent = line.startsWith('Agente:') || line.toLowerCase().includes('agente');
+                const cleanText = line.replace(/^(Cliente:|Agente:)/i, '').trim();
+
+                const bubbleWrapper = document.createElement('div');
+                bubbleWrapper.className = `flex w-full ${isAgent ? 'justify-end' : 'justify-start'}`;
+
+                bubbleWrapper.innerHTML = `
+                    <div class="max-w-[75%] p-3 rounded-lg shadow-xs text-sm ${isAgent ? 'bg-[#d9fdd3] text-slate-900 rounded-tr-none' : 'bg-white text-slate-900 rounded-tl-none'}">
+                        <p class="leading-normal break-words">${cleanText}</p>
+                    </div>
+                `;
+                modalChatBody.appendChild(bubbleWrapper);
+            });
+
+            chatModal.classList.remove('hidden');
+            modalChatBody.scrollTop = modalChatBody.scrollHeight;
+        }
+    </script>
+</body>
+</html>
