@@ -11,12 +11,9 @@
         .text-vyv-red { color: #991B1B; }
         .border-vyv-red { border-color: #991B1B; }
         .focus-vyv-red:focus { border-color: #991B1B; --tw-ring-color: #991B1B; }
-        
-        /* Estilos de burbujas */
         .bubble-agent { background-color: #d9fdd3; border-top-right-radius: 0; }
         .bubble-customer { background-color: #ffffff; border-top-left-radius: 0; }
-        .bubble-system { background-color: #e2e8f0; color: #64748b; font-size: 0.75rem; }
-        
+        .bubble-file { background-color: #f1f5f9; border-left: 4px solid #94a3b8; font-size: 0.85rem; color: #475569; }
         #modal-chat-body::-webkit-scrollbar { width: 6px; }
         #modal-chat-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
@@ -25,177 +22,79 @@
 
     <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center bg-white overflow-hidden shadow-inner">
-                    <span class="text-vyv-red font-bold text-lg">V&V</span>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">Grupo V&V</h1>
-                    <p class="text-xs font-medium text-slate-500">Analizador de reportes de chat de WhatsApp</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-6 text-sm text-slate-600 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
-                <div><span class="font-semibold text-slate-700">Línea WA:</span> 945455908</div>
-                <div class="h-4 w-px bg-slate-300"></div>
-                <div><span class="font-semibold text-slate-700">Supervisora:</span> Giovanna Bravo</div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Grupo V&V</h1>
+            <div class="flex gap-3">
+                <button onclick="exportCSV()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm hover:bg-slate-900"><i class="fa-solid fa-file-csv mr-2"></i>Exportar CSV</button>
+                <button id="btn-refresh" class="px-4 py-2 bg-vyv-red text-white rounded-lg text-sm hover:bg-red-900"><i class="fa-solid fa-rotate mr-2"></i>Actualizar</button>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div class="p-3 rounded-lg bg-red-50 text-vyv-red text-2xl"><i class="fa-solid fa-comments"></i></div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Total Chats Archivados</p>
-                    <p class="text-2xl font-bold text-slate-900" id="kpi-total">0</p>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div class="p-3 rounded-lg bg-blue-50 text-blue-600 text-2xl"><i class="fa-solid fa-clock"></i></div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Duración Promedio</p>
-                    <p class="text-2xl font-bold text-slate-900" id="kpi-duration">0 min</p>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-                <div class="p-3 rounded-lg bg-green-50 text-green-600 text-2xl"><i class="fa-solid fa-user-shield"></i></div>
-                <div>
-                    <p class="text-sm font-medium text-slate-500">Cola Activa</p>
-                    <p class="text-base font-bold text-slate-900 truncate max-w-[180px]">Sup. Giovanna Bravo</p>
-                </div>
-            </div>
-        </div>
-
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row gap-3 justify-between items-center">
-                <div class="relative w-full sm:w-72">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <input type="text" id="search-input" placeholder="Buscar por número de cliente..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus-vyv-red focus:border-transparent">
-                </div>
-                <button id="btn-refresh" class="w-full sm:w-auto px-4 py-2 bg-vyv-red hover:bg-red-900 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-rotate"></i> Actualizar Reportes
-                </button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-semibold">
-                            <th class="p-4">ID Sesión</th>
-                            <th class="p-4">Cliente (WhatsApp)</th>
-                            <th class="p-4">Agente Atención</th>
-                            <th class="p-4">Inicio del Chat</th>
-                            <th class="p-4">Cierre del Chat</th>
-                            <th class="p-4 text-center">Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="chats-table-body" class="divide-y divide-slate-100">
-                        <tr id="empty-row"><td colspan="6" class="p-8 text-center text-slate-400">Cargando datos...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+            <div class="p-4 border-b border-slate-200"><input type="text" id="search-input" placeholder="Buscar por número..." class="w-full sm:w-72 px-4 py-2 border rounded-lg text-sm"></div>
+            <table class="w-full text-left text-sm">
+                <thead><tr class="bg-slate-100 text-slate-600 font-semibold"><th class="p-4">Edo</th><th class="p-4">ID</th><th class="p-4">Cliente</th><th class="p-4">Agente</th><th class="p-4">Fecha</th><th class="p-4 text-center">Acción</th></tr></thead>
+                <tbody id="chats-table-body" class="divide-y divide-slate-100"></tbody>
+            </table>
         </div>
     </main>
 
-    <div id="chat-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
-        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[550px] flex flex-col overflow-hidden">
-            <div class="p-4 bg-vyv-red text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg"><i class="fa-brands fa-whatsapp"></i></div>
-                    <div>
-                        <h3 id="modal-client-name" class="font-bold text-base leading-tight">Historial</h3>
-                        <p id="modal-agent-name" class="text-xs text-red-200"></p>
-                    </div>
-                </div>
-                <button id="btn-close-modal" class="text-white hover:text-red-200 text-xl cursor-pointer p-1"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="modal-chat-body" class="flex-1 bg-[#efeae2] p-4 overflow-y-auto space-y-3" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');">
-            </div>
+    <div id="chat-modal" class="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl h-[550px] flex flex-col overflow-hidden">
+            <div class="p-4 bg-vyv-red text-white flex justify-between"><h3 class="font-bold">Historial</h3><button onclick="document.getElementById('chat-modal').classList.add('hidden')"><i class="fa-solid fa-xmark"></i></button></div>
+            <div id="modal-chat-body" class="flex-1 bg-[#efeae2] p-4 overflow-y-auto space-y-3"></div>
         </div>
     </div>
 
     <script>
         const WORKER_URL = 'https://vyv-wa.ursus006.workers.dev';
-        const btnRefresh = document.getElementById('btn-refresh');
-        const tableBody = document.getElementById('chats-table-body');
-        const searchInput = document.getElementById('search-input');
-        const chatModal = document.getElementById('chat-modal');
-        const btnCloseModal = document.getElementById('btn-close-modal');
-        const modalChatBody = document.getElementById('modal-chat-body');
-
         let allChats = [];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchChatsFromWorker();
-            btnRefresh.addEventListener('click', fetchChatsFromWorker);
-            btnCloseModal.addEventListener('click', () => chatModal.classList.add('hidden'));
-            searchInput.addEventListener('input', filterChats);
-        });
+        async function fetchChats() {
+            const btn = document.getElementById('btn-refresh');
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i>`;
+            const res = await fetch(`${WORKER_URL}/api/chats`);
+            allChats = await res.json();
+            renderTable(allChats);
+            btn.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar`;
+        }
 
-        function loadTable(data) {
-            if (!data || data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No hay chats registrados.</td></tr>`;
-                return;
-            }
-            document.getElementById('kpi-total').innerText = data.length;
-            tableBody.innerHTML = '';
-            data.forEach(chat => {
+        function renderTable(data) {
+            const tbody = document.getElementById('chats-table-body');
+            tbody.innerHTML = '';
+            data.forEach(c => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 border-b border-slate-100 transition-colors";
-                tr.innerHTML = `
-                    <td class="p-4 font-mono text-xs text-slate-500 font-bold">${chat.chat_id.substring(0,8)}</td>
-                    <td class="p-4"><div class="font-semibold text-slate-900">${chat.customer_phone}</div><div class="text-xs text-slate-400">${chat.customer_name}</div></td>
-                    <td class="p-4 text-slate-800 font-medium">${chat.agent_name}</td>
-                    <td class="p-4 text-xs text-slate-600">${new Date(chat.start_time).toLocaleString()}</td>
-                    <td class="p-4 text-xs text-slate-600">${new Date(chat.end_time).toLocaleString()}</td>
-                    <td class="p-4 text-center"><button onclick="openChatViewer('${chat.chat_id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-vyv-red hover:text-white text-slate-700 font-medium rounded-md text-xs cursor-pointer"><i class="fa-solid fa-eye"></i> Ver</button></td>
-                `;
-                tableBody.appendChild(tr);
+                tr.innerHTML = `<td class="p-4"><i class="fa-solid fa-circle ${c.agent_name && c.agent_name !== 'Desconocido' ? 'text-green-500' : 'text-gray-300'}"></i></td><td class="p-4 font-mono">${c.chat_id.substring(0,8)}</td><td class="p-4 font-semibold">${c.customer_phone}</td><td class="p-4">${c.agent_name || 'Pendiente'}</td><td class="p-4">${new Date(c.start_time).toLocaleDateString()}</td><td class="p-4 text-center"><button onclick="openChatViewer('${c.chat_id}')" class="text-vyv-red font-bold">Ver Chat</button></td>`;
+                tbody.appendChild(tr);
             });
         }
 
-        async function fetchChatsFromWorker() {
-            btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i>`;
-            try {
-                const res = await fetch(`${WORKER_URL}/api/chats`);
-                allChats = await res.json();
-                loadTable(allChats);
-            } catch (err) { alert("Error al conectar con la base de datos."); }
-            finally { btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`; }
+        window.openChatViewer = function(id) {
+            const chat = allChats.find(c => c.chat_id === id);
+            const body = document.getElementById('modal-chat-body');
+            body.innerHTML = '';
+            JSON.parse(chat.transcript).forEach(m => {
+                const isFile = m.text.toLowerCase().includes("file") || m.text.toLowerCase().includes("sticker");
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-lg ${m.type === 'agent' ? 'bubble-agent' : 'bubble-customer'} ${isFile ? 'bubble-file' : ''}`;
+                div.innerHTML = isFile ? `<i class="fa-solid fa-paperclip mr-2"></i>${m.text}` : m.text;
+                body.appendChild(div);
+            });
+            document.getElementById('chat-modal').classList.remove('hidden');
         }
 
-        function filterChats() {
-            const term = searchInput.value.toLowerCase();
-            loadTable(allChats.filter(c => c.customer_phone.includes(term)));
+        function exportCSV() {
+            let csv = "ID,Cliente,Agente,Fecha\n" + allChats.map(c => `${c.chat_id},${c.customer_phone},${c.agent_name},${c.start_time}`).join("\n");
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+            a.download = 'reporte_chats.csv';
+            a.click();
         }
 
-        window.openChatViewer = function(chatId) {
-            const chat = allChats.find(c => c.chat_id === chatId);
-            if (!chat) return;
-            document.getElementById('modal-client-name').innerText = `Cliente: ${chat.customer_name}`;
-            document.getElementById('modal-agent-name').innerText = `Atendido por: ${chat.agent_name}`;
-            modalChatBody.innerHTML = '';
-            try {
-                const messages = JSON.parse(chat.transcript);
-                messages.forEach(msg => {
-                    const bubble = document.createElement('div');
-                    const isAgent = msg.type === 'agent';
-                    const isSystem = msg.type === 'system';
-                    bubble.className = `flex w-full ${isAgent ? 'justify-end' : (isSystem ? 'justify-center' : 'justify-start')}`;
-                    bubble.innerHTML = `
-                        <div class="max-w-[75%] p-3 rounded-lg shadow-xs text-sm ${isAgent ? 'bubble-agent' : (isSystem ? 'bubble-system' : 'bubble-customer')}">
-                            ${!isSystem ? `<div class="text-[10px] font-bold text-slate-500 mb-1">${msg.person}</div>` : ''}
-                            <p class="leading-normal break-words">${msg.text}</p>
-                        </div>
-                    `;
-                    modalChatBody.appendChild(bubble);
-                });
-            } catch(e) { modalChatBody.innerHTML = `<p>Error al cargar historial.</p>`; }
-            chatModal.classList.remove('hidden');
-        }
+        document.getElementById('search-input').oninput = (e) => renderTable(allChats.filter(c => c.customer_phone.includes(e.target.value)));
+        document.getElementById('btn-refresh').onclick = fetchChats;
+        fetchChats();
     </script>
 </body>
 </html>
