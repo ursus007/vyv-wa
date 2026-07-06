@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grupo V&V - Analizador de Reportes</title>
+    <!-- Tailwind CSS CDN para un desarrollo ágil y limpio -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -16,9 +17,11 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
+    <!-- CABECERA PRINCIPAL (Navbar) -->
     <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
+                <!-- Espacio para el Logo circular -->
                 <div class="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center bg-white overflow-hidden shadow-inner">
                     <span class="text-vyv-red font-bold text-lg">V&V</span>
                 </div>
@@ -27,6 +30,7 @@
                     <p class="text-xs font-medium text-slate-500">Analizador de reportes de chat de WhatsApp</p>
                 </div>
             </div>
+            <!-- Info de la Cola / Línea -->
             <div class="flex items-center gap-6 text-sm text-slate-600 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
                 <div><span class="font-semibold text-slate-700">Línea WA:</span> 945455908</div>
                 <div class="h-4 w-px bg-slate-300"></div>
@@ -35,8 +39,10 @@
         </div>
     </header>
 
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         
+        <!-- TARJETAS DE MÉTRICAS RÁPIDAS (KPIs) -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
                 <div class="p-3 rounded-lg bg-red-50 text-vyv-red text-2xl"><i class="fa-solid fa-comments"></i></div>
@@ -61,7 +67,9 @@
             </div>
         </div>
 
+        <!-- SECCIÓN DE TABLA E HISTORIAL -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Barra de Herramientas / Filtros -->
             <div class="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row gap-3 justify-between items-center">
                 <div class="relative w-full sm:w-72">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -74,6 +82,7 @@
                 </button>
             </div>
 
+            <!-- Contenedor de la Tabla -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
@@ -98,8 +107,10 @@
         </div>
     </main>
 
+    <!-- VENTANA MODAL: VISUALIZADOR DE TRANSCRIPT (CHAT VIEWER) -->
     <div id="chat-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center z-50 hidden p-4">
         <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-2xl h-[550px] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <!-- Encabezado del Modal -->
             <div class="p-4 bg-vyv-red text-white flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg"><i class="fa-brands fa-whatsapp"></i></div>
@@ -110,11 +121,14 @@
                 </div>
                 <button id="btn-close-modal" class="text-white hover:text-red-200 text-xl cursor-pointer p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            <!-- Cuerpo del Modal (Área de Mensajes tipo WhatsApp) -->
             <div id="modal-chat-body" class="flex-1 bg-[#efeae2] p-4 overflow-y-auto space-y-3" style="background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-opacity: 0.4;">
-                </div>
+                <!-- Las burbujas se renderizan de forma dinámica desde JS -->
+            </div>
         </div>
     </main>
 
+    <!-- LÓGICA DE CONTROL DEL FRONTEND -->
     <script>
         const WORKER_URL = 'https://vyv-wa.ursus006.workers.dev'; // URL de tu Cloudflare Worker
 
@@ -129,24 +143,9 @@
         // Datos en memoria globales
         let allChats = [];
 
-        // Datos de prueba iniciales actualizados con la Supervisora Giovanna Bravo
-        const mockData = [
-            {
-                chat_id: "WA-7c0554ef",
-                customer_phone: "939579468",
-                customer_name: "Carlos Vásquez",
-                agent_extension: "2007",
-                agent_name: "Giovanna Bravo",
-                start_time: "2026-07-06T10:15:00.000Z",
-                end_time: "2026-07-06T10:45:00.000Z",
-                transcript: "Cliente: Hola, me gustaría consultar precios de soluciones.<br/>Agente: Hola Carlos, por supuesto. ¿Qué plan necesitas?<br/>Cliente: El plan corporativo completo. Gracias."
-            }
-        ];
-
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
-            allChats = [...mockData];
-            loadTable(allChats);
+            fetchChatsFromWorker();
             
             // Eventos
             btnRefresh.addEventListener('click', fetchChatsFromWorker);
@@ -156,8 +155,8 @@
 
         // Cargar los datos en la tabla visual y actualizar KPIs
         function loadTable(data) {
-            if (data.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i class="fa-solid fa-inbox text-3xl mb-2 block"></i> No se encontraron registros.</td></tr>`;
+            if (!data || data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400"><i class="fa-solid fa-inbox text-3xl mb-2 block"></i> No se encontraron registros de chats.</td></tr>`;
                 document.getElementById('kpi-total').innerText = '0';
                 document.getElementById('kpi-duration').innerText = '0 min';
                 return;
@@ -169,9 +168,9 @@
             let totalMinutes = 0;
             data.forEach(c => {
                 const diff = new Date(c.end_time) - new Date(c.start_time);
-                totalMinutes += Math.floor(diff / 1000 / 60);
+                totalMinutes += Math.max(0, Math.floor(diff / 1000 / 60));
             });
-            const avgMinutes = Math.round(totalMinutes / data.length);
+            const avgMinutes = Math.round(totalMinutes / data.length) || 0;
             document.getElementById('kpi-duration').innerText = `${avgMinutes} min`;
 
             tableBody.innerHTML = '';
@@ -180,18 +179,18 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 border-b border-slate-100 transition-colors";
                 
-                const fInicio = new Date(chat.start_time).toLocaleString('es-PE', {timeZone: 'America/Lima'});
-                const fFin = new Date(chat.end_time).toLocaleString('es-PE', {timeZone: 'America/Lima'});
+                const fInicio = chat.start_time ? new Date(chat.start_time).toLocaleString('es-PE', {timeZone: 'America/Lima'}) : 'N/A';
+                const fFin = chat.end_time ? new Date(chat.end_time).toLocaleString('es-PE', {timeZone: 'America/Lima'}) : 'N/A';
 
                 tr.innerHTML = `
-                    <td class="p-4 font-mono text-xs text-slate-500 font-bold">${chat.chat_id.substring(0,8)}</td>
+                    <td class="p-4 font-mono text-xs text-slate-500 font-bold">${chat.chat_id ? chat.chat_id.substring(0,8) : 'N/A'}</td>
                     <td class="p-4">
-                        <div class="font-semibold text-slate-900">${chat.customer_phone}</div>
+                        <div class="font-semibold text-slate-900">${chat.customer_phone || 'Desconocido'}</div>
                         <div class="text-xs text-slate-400">${chat.customer_name || 'Sin Nombre'}</div>
                     </td>
                     <td class="p-4">
-                        <div class="text-slate-800 font-medium">${chat.agent_name || 'Agente 3CX'}</div>
-                        <div class="text-xs text-slate-400">Ext: ${chat.agent_extension || 'N/A'}</div>
+                        <div class="text-slate-800 font-medium">${chat.agent_name || 'Giovanna Bravo'}</div>
+                        <div class="text-xs text-slate-400">Ext: ${chat.agent_extension || '2007'}</div>
                     </td>
                     <td class="p-4 text-xs text-slate-600">${fInicio}</td>
                     <td class="p-4 text-xs text-slate-600">${fFin}</td>
@@ -205,17 +204,20 @@
             });
         }
 
-        // Llamada simulada (Se conectará de verdad en el Paso 2)
+        // Conexión Real al Endpoint GET de tu Cloudflare Worker
         async function fetchChatsFromWorker() {
-            btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Conectando...`;
+            btnRefresh.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Cargando...`;
             try {
-                // Simulación de delay de red antes de conectar al backend de producción
-                setTimeout(() => {
-                    loadTable(allChats);
-                    btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`;
-                }, 600);
+                const response = await fetch(`${WORKER_URL}/api/chats`);
+                if (!response.ok) {
+                    throw new Error(`Error en el servidor: ${response.status}`);
+                }
+                allChats = await response.getJson ? await response.getJson() : await response.json();
+                loadTable(allChats);
             } catch (err) {
-                alert("Error al conectar con el Worker: " + err.message);
+                console.error("Error al traer reportes:", err);
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2 block"></i> Error de conexión con la base de datos.</td></tr>`;
+            } finally {
                 btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar Reportes`;
             }
         }
@@ -223,7 +225,7 @@
         // Filtrar en tiempo real por teléfono
         function filterChats() {
             const term = searchInput.value.trim().toLowerCase();
-            const filtered = allChats.filter(c => c.customer_phone.includes(term));
+            const filtered = allChats.filter(c => (c.customer_phone || '').includes(term));
             loadTable(filtered);
         }
 
@@ -232,30 +234,33 @@
             const chat = allChats.find(c => c.chat_id === chatId);
             if (!chat) return;
 
-            document.getElementById('modal-client-name').innerText = `Cliente: +51 ${chat.customer_phone}`;
-            document.getElementById('modal-agent-name').innerText = `Atendido por: ${chat.agent_name} (Ext: ${chat.agent_extension})`;
+            document.getElementById('modal-client-name').innerText = `Cliente: +51 ${chat.customer_phone || 'WhatsApp'}`;
+            document.getElementById('modal-agent-name').innerText = `Atendido por: ${chat.agent_name || 'Giovanna Bravo'} (Ext: ${chat.agent_extension || '2007'})`;
             
             modalChatBody.innerHTML = '';
 
-            // Procesamiento dinámico del transcript (Soporta JSON plano de 3CX v20 o Strings estructurados)
             let lines = [];
+            
+            // Tratamiento dinámico del transcript para evitar rupturas
             try {
-                // Si la data viene en un array JSON nativo
+                // Si guardaste el transcript estructurado en formato JSON stringificado
                 const parsed = JSON.parse(chat.transcript);
                 if (Array.isArray(parsed)) {
                     lines = parsed.map(m => `${m.speaker || (m.isAgent ? 'Agente' : 'Cliente')}: ${m.text}`);
+                } else if (typeof parsed === 'string') {
+                    lines = parsed.split('<br/>');
                 } else {
                     lines = chat.transcript.split('<br/>');
                 }
             } catch(e) {
-                // Fallback para strings con separadores HTML
-                lines = chat.transcript.split('<br/>');
+                // Fallback si vino codificado con saltos HTML nativos de 3CX
+                lines = (chat.transcript || '').split('<br/>');
             }
             
             lines.forEach(line => {
                 if(!line.trim()) return;
                 
-                const isAgent = line.startsWith('Agente:') || line.toLowerCase().includes('agente');
+                const isAgent = line.startsWith('Agente:') || line.toLowerCase().includes('agente:');
                 const cleanText = line.replace(/^(Cliente:|Agente:)/i, '').trim();
 
                 const bubbleWrapper = document.createElement('div');
