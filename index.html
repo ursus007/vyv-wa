@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grupo V&V - Analizador de Reportes</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .bg-vyv-red { background-color: #991B1B; }
@@ -87,6 +88,10 @@
                             <span class="text-xs text-slate-400 font-medium">Hasta:</span>
                             <input type="date" id="date-to" class="border-0 text-sm bg-transparent focus:outline-none text-slate-700">
                         </div>
+                        <!-- Selector de agente (en la barra de filtros) -->
+                         <select id="agent-filter" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus-vyv-red">
+                            <option value="">Todos los agentes</option>
+                        </select>
                     </div>
                     <button id="btn-refresh" class="w-full md:w-auto px-4 py-2 bg-vyv-red hover:bg-red-900 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2 shadow-sm cursor-pointer">
                         <i class="fa-solid fa-rotate"></i> Actualizar
@@ -159,6 +164,12 @@
                         <p class="text-xs text-slate-400 text-center py-4">Procesando franjas horarias...</p>
                     </div>
                 </div>
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <h3 class="font-bold text-slate-700 mb-4">Chats por Día</h3>
+                        <canvas id="chart-chats-day" height="80"></canvas>
+                </div>
+
             </div>
         </div>
 
@@ -194,6 +205,8 @@
         const chatModal = document.getElementById('chat-modal');
         const btnCloseModal = document.getElementById('btn-close-modal');
         const modalChatBody = document.getElementById('modal-chat-body');
+        const agentFilter = document.getElementById('agent-filter');
+        let chatsDayChart = null;
 
         let allChats = [];
 
@@ -204,32 +217,33 @@
             searchInput.addEventListener('input', applyFilters);
             dateFromInput.addEventListener('change', applyFilters);
             dateToInput.addEventListener('change', applyFilters);
+            agentFilter.addEventListener('change', applyFilters);
         });
 
-function downloadChat() {
-    const clientName = document.getElementById('modal-client-name').innerText.replace('Cliente: ', '');
-    const agentName = document.getElementById('modal-agent-name').innerText.replace('Atendido por: ', '');
-    const chat = allChats.find(c => `Cliente: ${c.customer_name || c.customer_phone}` === document.getElementById('modal-client-name').innerText);
+        function downloadChat() {
+            const clientName = document.getElementById('modal-client-name').innerText.replace('Cliente: ', '');
+            const agentName = document.getElementById('modal-agent-name').innerText.replace('Atendido por: ', '');
+            const chat = allChats.find(c => `Cliente: ${c.customer_name || c.customer_phone}` === document.getElementById('modal-client-name').innerText);
 
-    let messages = [];
-    try { messages = JSON.parse(chat.transcript); } catch(e) {}
+            let messages = [];
+            try { messages = JSON.parse(chat.transcript); } catch(e) {}
 
-    const bubblesHtml = messages.map(msg => {
-        const isAgent = msg.type === 'agent';
-        const isSystem = msg.type === 'system';
-        const align = isAgent ? 'flex-end' : (isSystem ? 'center' : 'flex-start');
-        const bg = isAgent ? '#d9fdd3' : (isSystem ? '#e2e8f0' : '#ffffff');
-        const radius = isAgent ? '12px 12px 0 12px' : (isSystem ? '12px' : '12px 12px 12px 0');
-        return `
-        <div style="display:flex; justify-content:${align}; margin-bottom:10px;">
-            <div style="max-width:75%; background:${bg}; border-radius:${radius}; padding:10px 14px; box-shadow:0 1px 2px rgba(0,0,0,.1); font-size:14px; color:#1e293b;">
-                ${!isSystem ? `<div style="font-size:10px; font-weight:700; color:#64748b; margin-bottom:3px;">${msg.person}</div>` : ''}
-                <p style="margin:0; line-height:1.4; white-space:pre-wrap;">${msg.text}</p>
-            </div>
-        </div>`;
-    }).join('');
+            const bubblesHtml = messages.map(msg => {
+                const isAgent = msg.type === 'agent';
+                const isSystem = msg.type === 'system';
+                const align = isAgent ? 'flex-end' : (isSystem ? 'center' : 'flex-start');
+                const bg = isAgent ? '#d9fdd3' : (isSystem ? '#e2e8f0' : '#ffffff');
+                const radius = isAgent ? '12px 12px 0 12px' : (isSystem ? '12px' : '12px 12px 12px 0');
+                return `
+                <div style="display:flex; justify-content:${align}; margin-bottom:10px;">
+                    <div style="max-width:75%; background:${bg}; border-radius:${radius}; padding:10px 14px; box-shadow:0 1px 2px rgba(0,0,0,.1); font-size:14px; color:#1e293b;">
+                        ${!isSystem ? `<div style="font-size:10px; font-weight:700; color:#64748b; margin-bottom:3px;">${msg.person}</div>` : ''}
+                        <p style="margin:0; line-height:1.4; white-space:pre-wrap;">${msg.text}</p>
+                    </div>
+                </div>`;
+            }).join('');
 
-    const fullHtml = `<!DOCTYPE html>
+            const fullHtml = `<!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8">
 <title>Chat - ${clientName}</title>
 <style>
@@ -249,12 +263,12 @@ function downloadChat() {
   </div>
 </body></html>`;
 
-    const blob = new Blob([fullHtml], {type: 'text/html'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `Chat_${clientName.replace(/\s+/g, '_')}.html`;
-    a.click();
-}
+            const blob = new Blob([fullHtml], {type: 'text/html'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Chat_${clientName.replace(/\s+/g, '_')}.html`;
+            a.click();
+        }
 
         function switchTab(tab) {
             const isRep = tab === 'reportes';
@@ -278,7 +292,8 @@ function downloadChat() {
             const searchTerm = searchInput.value.toLowerCase();
             const fromDate = dateFromInput.value;
             const toDate = dateToInput.value;
-            
+            const agentSelected = agentFilter.value;
+
             const filtered = allChats.filter(chat => {
                 const matchText = chat.customer_phone.toLowerCase().includes(searchTerm) || 
                                 (chat.customer_name && chat.customer_name.toLowerCase().includes(searchTerm));
@@ -286,8 +301,9 @@ function downloadChat() {
                 const chatDate = chat.start_time ? chat.start_time.split('T')[0] : '';
                 const matchFrom = fromDate ? chatDate >= fromDate : true;
                 const matchTo = toDate ? chatDate <= toDate : true;
+                const matchAgent = agentSelected ? chat.agent_extension === agentSelected : true;
                 
-                return matchText && matchFrom && matchTo;
+                return matchText && matchFrom && matchTo && matchAgent;
             });
             loadTable(filtered);
         }
@@ -327,6 +343,42 @@ function downloadChat() {
             const avg = validDurations > 0 ? Math.round(totalMins / validDurations) : 0;
             document.getElementById('kpi-duration').innerText = `${avg} min`;
             updateDashboardMetrics();
+        }
+
+        function renderChatsPerDayChart() {
+            const dayCounts = {};
+            allChats.forEach(c => {
+                if (c.start_time) {
+                    const day = c.start_time.split('T')[0];
+                    dayCounts[day] = (dayCounts[day] || 0) + 1;
+                }
+            });
+
+            const sortedDays = Object.keys(dayCounts).sort().slice(-14); // últimos 14 días con datos
+            const labels = sortedDays.map(d => new Date(d).toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit' }));
+            const values = sortedDays.map(d => dayCounts[d]);
+
+            const ctx = document.getElementById('chart-chats-day');
+            if (!ctx) return;
+
+            if (chatsDayChart) chatsDayChart.destroy();
+            chatsDayChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Chats',
+                        data: values,
+                        backgroundColor: '#991B1B',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
         }
 
         function updateDashboardMetrics() {
@@ -371,6 +423,8 @@ function downloadChat() {
                     <span class="text-slate-900 font-bold">${count} req.</span>
                 </div>
             `).join('') || '<p class="text-xs text-slate-400 text-center py-4">Sin datos de horas</p>';
+
+            renderChatsPerDayChart();
         }
 
         async function fetchChatsFromWorker() {
@@ -378,6 +432,7 @@ function downloadChat() {
             try {
                 const res = await fetch(`${WORKER_URL}/api/chats`);
                 allChats = await res.json();
+                populateAgentFilter();
                 applyFilters();
             } catch (err) { alert("Error al cargar datos."); }
             finally { btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Actualizar`; }
@@ -415,6 +470,17 @@ function downloadChat() {
                 });
             } catch(e) { modalChatBody.innerHTML = `<p>Error al cargar historial.</p>`; }
             chatModal.classList.remove('hidden');
+        }
+
+        function populateAgentFilter() {
+            const agents = {};
+            allChats.forEach(c => {
+                if (c.agent_extension) agents[c.agent_extension] = c.agent_name || c.agent_extension;
+            });
+            const currentValue = agentFilter.value;
+            agentFilter.innerHTML = '<option value="">Todos los agentes</option>' +
+                Object.entries(agents).map(([ext, name]) => `<option value="${ext}">${name} (${ext})</option>`).join('');
+            agentFilter.value = currentValue;
         }
     </script>
 </body>
